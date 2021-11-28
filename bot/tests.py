@@ -9,8 +9,7 @@ import telebot
 
 class TestTelegramBot(TestCase):
     def setUp(self) -> None:
-        TOKEN = os.environ.get('TELEGRAM_API_TOKEN')
-        self.bot = pizzordbot.PizzordBot(TOKEN)
+        self.bot = pizzordbot.PizzordBot("TEST")
         views.bot = self.bot
         telebot.apihelper.CUSTOM_REQUEST_SENDER = self.custom_sender
 
