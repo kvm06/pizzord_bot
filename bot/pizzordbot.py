@@ -12,4 +12,3 @@ class PizzordBot(TeleBot):
         self.machine.add_transition(trigger='payment_chosed', source='chosing_payment', dest='confirmation')
         self.machine.add_transition(trigger='confirmed', source='confirmation', dest='finish')
         self.machine.add_transition(trigger='not_confirmed', source='confirmation', dest='start')
-

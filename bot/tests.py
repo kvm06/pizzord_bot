@@ -1,17 +1,17 @@
-from django.test import TestCase
-from src.bot import views
-from src.bot import pizzordbot
-import os
 import telebot
+from django.test import TestCase
+from . import views
+from . import pizzordbot
+from .models import Order, BotState
+from .db import save_state
 
-
-# Create your tests here.
 
 class TestTelegramBot(TestCase):
     def setUp(self) -> None:
         self.bot = pizzordbot.PizzordBot("TEST")
         views.bot = self.bot
         telebot.apihelper.CUSTOM_REQUEST_SENDER = self.custom_sender
+        BotState.objects.create(chat_id=1, state='start')
 
     def custom_sender(method, url, message, **kwargs):
         result = telebot.util.CustomRequestResponse(
@@ -20,34 +20,40 @@ class TestTelegramBot(TestCase):
 
     def test_pizza_correct_choice_big(self):
         self.bot.started()
+        save_state(1, self.bot.state)
         answer = views.send_message("test", chat_id=1, text='большую')
         self.assertEqual(answer, 'Как вы будете платить?')
 
     def test_pizza_correct_choice_small(self):
         self.bot.started()
+        save_state(1, self.bot.state)
         answer = views.send_message("test", chat_id=1, text='маленькую')
         self.assertEqual(answer, 'Как вы будете платить?')
 
     def test_chose_pizza_incorrect_answer(self):
         self.bot.started()
+        save_state(1, self.bot.state)
         answer = views.send_message("test", chat_id=1, text='среднюю')
         self.assertEqual(answer, 'Такой у нас нет. Выберите большую или маленькую')
 
     def test_chose_payment_correct_answer_cash(self):
         self.bot.started()
         self.bot.pizza_chosed()
+        save_state(1, self.bot.state)
         answer = views.send_message("test", chat_id=1, text='наличными')
         self.assertEqual(answer, 'Вы выбрали default пиццу. Оплата - наличными?')
 
     def test_chose_payment_correct_answer_card(self):
         self.bot.started()
         self.bot.pizza_chosed()
+        save_state(1, self.bot.state)
         answer = views.send_message("test", chat_id=1, text='картой')
         self.assertEqual(answer, 'Вы выбрали default пиццу. Оплата - картой?')
 
     def test_chose_payment_incorrect_answer(self):
         self.bot.started()
         self.bot.pizza_chosed()
+        save_state(1, self.bot.state)
         answer = views.send_message("test", chat_id=1, text='тугриками')
         self.assertEqual(answer, 'Некорректный способ оплаты. Выберите - картой или наличными')
 
@@ -55,6 +61,7 @@ class TestTelegramBot(TestCase):
         self.bot.started()
         self.bot.pizza_chosed()
         self.bot.payment_chosed()
+        save_state(1, self.bot.state)
         answer = views.send_message("test", chat_id=1, text='да')
         self.assertEqual(answer, 'Ваш заказ подтвержден!')
 
@@ -62,6 +69,7 @@ class TestTelegramBot(TestCase):
         self.bot.started()
         self.bot.pizza_chosed()
         self.bot.payment_chosed()
+        save_state(1, self.bot.state)
         answer = views.send_message("test", chat_id=1, text='нет')
         self.assertEqual(answer, 'Чтобы начать сначала введите "/start"')
 
@@ -69,5 +77,6 @@ class TestTelegramBot(TestCase):
         self.bot.started()
         self.bot.pizza_chosed()
         self.bot.payment_chosed()
+        save_state(1, self.bot.state)
         answer = views.send_message("test", chat_id=1, text='не помню')
         self.assertEqual(answer, 'Для подтверждения заказа введите "Да", для отмены "Нет"')
